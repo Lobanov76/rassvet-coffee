@@ -391,9 +391,10 @@ main > section:not(.dawn) > :not(.decor):not(.tape) { position: relative; z-inde
 .panel--autumn { padding-top: clamp(40px, 4vw, 60px); padding-left: clamp(40px, 6vw, 96px); }
 .panel--autumn .decor { z-index: 2; filter: drop-shadow(0 10px 12px rgb(0 0 0 / .5)); }
 /* На компьютере слева вытянутый оранжевый лист, на телефоне вместо него ветка */
-.decor--leaf { left: clamp(-56px, -3vw, -20px); top: clamp(110px, 10vw, 150px); width: clamp(84px, 7vw, 120px); rotate: -32deg; }
+.decor--leaf { left: clamp(-92px, -5.4vw, -40px); top: clamp(150px, 12vw, 190px); width: clamp(96px, 7.6vw, 130px); rotate: -18deg; }
+.decor--acorn { left: clamp(-30px, -1.8vw, -12px); bottom: 12%; width: clamp(46px, 3.8vw, 64px); rotate: 22deg; }
 @media (min-width: 821px) { .panel--autumn .decor--abranch { display: none; } }
-@media (max-width: 820px) { .panel--autumn .decor--leaf { display: none; } }
+@media (max-width: 820px) { .panel--autumn .decor--leaf, .panel--autumn .decor--acorn { display: none; } }
 .decor--abranch { left: clamp(-80px, -5vw, -26px); top: clamp(96px, 9vw, 130px); width: clamp(120px, 11vw, 190px); rotate: -24deg; }
 .decor--maple { right: clamp(-44px, -2.6vw, -12px); bottom: clamp(-56px, -3.6vw, -24px); width: clamp(90px, 9vw, 160px); rotate: 16deg; }
 .decor--cinnamon { right: clamp(150px, 15vw, 270px); top: -26px; width: clamp(48px, 4.4vw, 76px); rotate: 64deg; }
@@ -524,10 +525,9 @@ main > section:not(.dawn) > :not(.decor):not(.tape) { position: relative; z-inde
 .loop p { margin-top: 12px; font-size: 17px; max-width: 34ch; }
 .loop__mid { text-align: left; }
 .loop__mid p { margin-inline: 0; }
-/* Знак переработки: три стрелки треугольником, по центру колонки, цифра «2» остаётся слева */
-.loop__arrow { display: block; width: clamp(90px, 9vw, 130px); height: auto; margin: clamp(4px, 1vw, 16px) auto 0; overflow: visible; }
-.loop__arrow path { fill: none; stroke: #2b2015; stroke-width: 7; stroke-linecap: round; }
-.loop__arrow path.h { fill: #2b2015; stroke-width: 2; stroke-linejoin: round; }
+/* Знак переработки (классические три стрелки), по центру колонки; цифра «2» остаётся слева */
+.loop__arrow { display: block; width: clamp(92px, 9vw, 128px); height: auto; margin: clamp(4px, 1vw, 16px) auto 0; }
+.loop__arrow path { fill: #2f5a35; }
 .kraft__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px 40px; }
 .kraft__head h2 { flex: 1 1 0; min-width: 0; }
 .kraft__head .eco__list { flex: 0 0 auto; max-width: 56%; }
