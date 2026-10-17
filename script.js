@@ -16,19 +16,28 @@
   const LANGS = ["ru", "uz", "en"];
   let lang = "ru";
   const ui = (key) => (I18N ? I18N.ui[lang][key] : I18N_RU[key]);
-  const I18N_RU = { open: "Открыто до 20:30", closed: "Откроемся в 08:30", nowOpen: "Сейчас открыто, до закрытия {t}",
-    nowClosed: "Сейчас закрыто, откроемся в 08:30", openShort: "До 20:30", closedShort: "С 08:30", h: "{n} ч", m: "{n} мин", menuOpen: "Открыть меню разделов", menuClose: "Закрыть меню разделов" };
+  const I18N_RU = { open: "Открыто до {c}", closed: "Откроемся в {o}", nowOpen: "Сейчас открыто, до закрытия {t}",
+    nowClosed: "Сейчас закрыто, откроемся в {o}", openShort: "До {c}", closedShort: "С {o}", h: "{n} ч", m: "{n} мин", menuOpen: "Открыть меню разделов", menuClose: "Закрыть меню разделов" };
 
-  // Открыто или закрыто, по ташкентскому времени (UTC+5), 08:30-20:30
+  // Часы работы по ташкентскому времени (UTC+5): пн-чт 08:00-21:00, пт-вс 08:30-22:00
   const status = document.getElementById("status");
-  const OPEN = 8 * 60 + 30, CLOSE = 20 * 60 + 30;
-  function updateStatus() {
-    const now = new Date();
-    const mins = (now.getUTCHours() * 60 + now.getUTCMinutes() + 5 * 60) % (24 * 60);
+  const hoursOf = (day) => (day === 5 || day === 6 || day === 0 ? [8 * 60 + 30, 22 * 60] : [8 * 60, 21 * 60]);
+  const fmt = (m) => String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0");
+  function today() {
+    const d = new Date(Date.now() + 5 * 3600 * 1000);
+    const mins = d.getUTCHours() * 60 + d.getUTCMinutes();
+    const [OPEN, CLOSE] = hoursOf(d.getUTCDay());
     const open = mins >= OPEN && mins < CLOSE;
+    // после закрытия откроемся уже завтра, по завтрашним часам
+    const next = mins < OPEN ? OPEN : hoursOf((d.getUTCDay() + 1) % 7)[0];
+    return { mins, OPEN, CLOSE, open, next };
+  }
+  const fill = (s, h) => s.replace("{o}", fmt(h.next)).replace("{c}", fmt(h.CLOSE));
+  function updateStatus() {
+    const h = today(), open = h.open;
     // на узком телефоне коротко, чтобы шапка поместилась
     const short = window.matchMedia("(max-width: 430px)").matches;
-    status.textContent = ui((open ? "open" : "closed") + (short ? "Short" : ""));
+    status.textContent = fill(ui((open ? "open" : "closed") + (short ? "Short" : "")), h);
     status.classList.toggle("is-open", open);
   }
   if (status) { updateStatus(); setInterval(updateStatus, 60000); window.addEventListener("resize", updateStatus); }
@@ -229,7 +238,7 @@
       bird.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) rotate(${rot.toFixed(1)}deg) scale(${sc.toFixed(3)})`;
       bird.classList.toggle("is-flying", t > 0 && t < 1);
 
-      // Блок 08:30 поднимается, когда слово собралось в строку:
+      // Блок 08:00 поднимается, когда слово собралось в строку:
       // текст выходит слева, видео по очереди выезжают справа
       if (morning) {
         const vh = window.innerHeight;
@@ -259,10 +268,10 @@
   const arcSun = document.getElementById("arc-sun");
   const arcNow = document.getElementById("arc-now");
   function updateArc() {
-    const now = new Date();
-    const mins = (now.getUTCHours() * 60 + now.getUTCMinutes() + 5 * 60) % (24 * 60);
-    const open = mins >= OPEN && mins < CLOSE;
-    // днём солнце идёт по дуге слева направо, ночью луна стоит в конце дуги, у 20:30
+    const hrs = today(), { mins, OPEN, CLOSE, open } = hrs;
+    const from = document.getElementById("arc-from"), to = document.getElementById("arc-to");
+    if (from && to) { from.textContent = fmt(OPEN); to.textContent = fmt(CLOSE); }
+    // днём солнце идёт по дуге слева направо, ночью луна стоит в конце дуги, у закрытия
     const t = open ? (mins - OPEN) / (CLOSE - OPEN) : 1;
     const a = Math.PI * (1 - t);
     arcSun.setAttribute("transform", `translate(${(200 + 180 * Math.cos(a)).toFixed(1)} ${(200 - 180 * Math.sin(a)).toFixed(1)})`);
@@ -272,7 +281,7 @@
       const left = CLOSE - mins, h = Math.floor(left / 60), m = left % 60;
       arcNow.textContent = ui("nowOpen").replace("{t}", (h ? ui("h").replace("{n}", h) + " " : "") + ui("m").replace("{n}", m));
     } else {
-      arcNow.textContent = ui("nowClosed");
+      arcNow.textContent = fill(ui("nowClosed"), hrs);
     }
   }
   if (arcSun && arcNow) { updateArc(); setInterval(updateArc, 60000); }
