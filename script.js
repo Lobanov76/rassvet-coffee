@@ -220,7 +220,10 @@
       // Птица: взлетает над словом, машет крыльями и влетает в круглый логотип в шапке
       const t = range(p, 0.02, 0.42);
       const x = geo.birdOut.x * easeIn(t);
-      const y = geo.birdOut.y * easeOut(t) + Math.sin(t * Math.PI * 3) * 40 * t * (1 - t);
+      // на телефоне птица не взмывает сразу к верхнему краю: летит ниже и поднимается к логотипу плавно
+      const narrow = window.innerWidth <= 820;
+      const up = narrow ? t * t * (3 - 2 * t) : easeOut(t);
+      const y = geo.birdOut.y * up + Math.sin(t * Math.PI * 3) * (narrow ? 24 : 40) * t * (1 - t);
       const rot = -14 * Math.sin(Math.PI * t);
       const sc = lerp(1, geo.birdOut.sc, easeIn(t));
       bird.style.opacity = t >= 1 ? "0" : "1";
