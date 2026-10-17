@@ -234,18 +234,43 @@ small { font-size: .78em; color: var(--muted); font-weight: 350; }
 }
 
 /* Сцена с прокруткой: 0 = солнце наполовину за горизонтом, 1 = готовый логотип */
-.dawn-on .dawn { height: 230dvh; }
+.dawn-on .dawn { height: 230vh; height: 230svh; }
 .dawn-on .dawn { margin-top: calc(-1 * var(--hh)); }
 /* Блок «08:30» поднимается, пока слово улетает в шапку: без пустого экрана */
-.dawn-on .morning { margin-top: -90dvh; z-index: 2; }
+.dawn-on .morning { margin-top: -90vh; margin-top: -90svh; z-index: 2; }
 .dawn-on .morning__videos video, .dawn-on .morning__text { will-change: transform, opacity; }
 .dawn-on .morning__videos video { transform: translateX(110vw); }
-.dawn-on .dawn__stage { position: sticky; top: 0; height: 100dvh; min-height: 0; padding-top: calc(var(--hh) + 24px); }
+.dawn-on .dawn__stage {
+  position: sticky; top: 0; height: 100vh; height: 100lvh; min-height: 0;
+  padding-top: calc(var(--hh) + 24px);
+  /* логотип стоит по центру видимой части экрана, даже когда внизу панель браузера */
+  padding-bottom: calc(48px + 100lvh - 100svh);
+}
 /* Пока идёт рассвет, шапка прозрачная: слово «РАССВЕТ» видно до посадки на своё место */
 .top { transition: background-color .3s, border-color .3s, backdrop-filter .3s; }
 .top.is-clear { background: transparent; border-bottom-color: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .dawn-on .brand span { opacity: 0; }
 .dawn-on .mark__bird { will-change: transform, opacity; }
+
+/* Заставка: внизу бледная мигающая стрелка. Одно движение вниз (палец, колесо, клавиша
+   или нажатие на стрелку) запускает всю анимацию сразу, дальше она идёт сама (script.js). */
+.dawn__go { display: none; }
+.dawn-on .dawn__go {
+  display: grid; place-items: center;
+  position: absolute; left: 50%; z-index: 2;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px) + 100lvh - 100svh);
+  width: 56px; height: 56px; margin-left: -28px; padding: 0; border: 0; border-radius: 50%;
+  background: none; color: #f6efd2; cursor: pointer;
+  opacity: 0; visibility: hidden; transition: opacity .4s ease, visibility 0s linear .4s;
+}
+.dawn-on.dawn-rest .dawn__go { opacity: 1; visibility: visible; transition: opacity .8s ease .6s, visibility 0s; }
+.dawn__go svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; animation: dawn-go 2.4s ease-in-out infinite; }
+@keyframes dawn-go {
+  0%, 100% { opacity: .3; transform: translateY(-3px); }
+  50% { opacity: .8; transform: translateY(4px); }
+}
+.dawn__go:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+html.dawn-playing { scroll-behavior: auto; }
 .mark__title, .mark__bird { transition: color .4s, fill .4s; }
 .dawn__stage.is-out .mark__title { color: var(--heading); }
 .dawn__stage.is-bird-out .mark__bird { fill: var(--heading); }
@@ -653,7 +678,7 @@ main > section:not(.dawn) > :not(.decor):not(.tape) { position: relative; z-inde
   .nav.is-open { transform: none; opacity: 1; visibility: visible; }
   .nav a { font-size: 24px; padding: 12px 0; color: var(--heading); }
   .dawn__stage { --F: min(19vw, 12dvh); }
-  .dawn-on .dawn { height: 210dvh; }
+  .dawn-on .dawn { height: 210vh; height: 210svh; }
 
   .morning { grid-template-columns: 1fr; }
   .morning__videos { grid-template-columns: 1fr 1fr; overflow: visible; }
@@ -710,7 +735,8 @@ main > section:not(.dawn) > :not(.decor):not(.tape) { position: relative; z-inde
   --paper: #f7f5e8; --ink: #1c2818; --heading: #24361f; --muted: #5d6450;
   --line: rgb(36 54 31 / .14); --clock: #8a9a50;
 }
-.is-day.dawn-on .tone-dawn { background: linear-gradient(to bottom, rgb(251 239 210 / 0) 0, #fbf1d6 34%, #eef2df 100%); }
+/* до удара птицы блок 08:30 без своего фона: снизу продолжается небо, а не светлая полоса */
+.is-day.dawn-on .tone-dawn { background: transparent; }
 .is-day .tone-sage { background: linear-gradient(to bottom, #eef2df, #e2e9cd); }
 .is-day .tone-khaki { background: linear-gradient(to bottom, #e2e9cd, #e9e5c6); }
 .is-day .tone-forest { background: linear-gradient(to bottom, #e9e5c6, #e3dfbf); }

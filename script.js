@@ -83,7 +83,7 @@
   document.querySelectorAll('[role="tabpanel"]').forEach((p) => { p.tabIndex = 0; });
 
   // Рассвет. С самого начала стоит готовый логотип: солнце, «РАС / СВЕТ», птица.
-  // Прокрутка от 0 до 1: солнце уходит вверх, птица улетает влево,
+  // Сцена от 0 до 1 (её проигрывает заставка ниже): солнце уходит вверх, птица улетает влево,
   // «РАССВЕТ» собирается в строку и садится в шапку на место слова «Рассвет».
   // Начальный кадр задаёт CSS, здесь только смещения от него.
   const dawn = document.getElementById("dawn");
@@ -248,9 +248,98 @@
       }
     }
     const request = () => { if (!ticking) { ticking = true; requestAnimationFrame(render); } };
-    window.addEventListener("scroll", request, { passive: true });
+
+    // Заставка. Сайт открывается готовым логотипом и мигающей стрелкой внизу.
+    // Одно движение вниз запускает всю сцену: страница сама прокручивается до блока 08:30
+    // за несколько секунд, а руками в это время листать нельзя, поэтому анимация
+    // не зависит от пальца. Если вернуться наверх, сцена так же сама проигрывается назад.
+    const go = dawn.querySelector(".dawn__go");
+    const travelPx = () => Math.round(dawn.offsetHeight - stage.offsetHeight);
+    let mode = "rest", lastY = window.scrollY;
+    const setMode = (m) => {
+      mode = m;
+      root.classList.toggle("dawn-rest", m === "rest");
+      root.classList.toggle("dawn-playing", m === "playing");
+    };
+    function play(dir) {
+      if (mode === "playing") return;
+      const from = window.scrollY, to = dir > 0 ? travelPx() : 0;
+      const part = Math.abs(to - from) / (travelPx() || 1);
+      if (part < 0.01) { setMode(dir > 0 ? "done" : "rest"); return; }
+      setMode("playing");
+      const dur = (dir > 0 ? 3600 : 2200) * Math.max(0.35, part);
+      const t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / dur);
+        const e = (1 - Math.cos(Math.PI * k)) / 2;
+        window.scrollTo(0, from + (to - from) * e);
+        render();
+        if (k < 1) requestAnimationFrame(step);
+        else { lastY = window.scrollY; setMode(dir > 0 ? "done" : "rest"); }
+      };
+      requestAnimationFrame(step);
+    }
+
+    // Пока стоит заставка или идёт анимация, своё листание страницы отключено
+    window.addEventListener("wheel", (e) => {
+      if (mode === "done") return;
+      e.preventDefault();
+      if (mode === "rest" && e.deltaY > 0) play(1);
+    }, { passive: false });
+    let touchY = null;
+    window.addEventListener("touchstart", (e) => { touchY = e.touches[0].clientY; }, { passive: true });
+    window.addEventListener("touchmove", (e) => {
+      if (mode === "done") return;
+      e.preventDefault();
+      if (mode === "rest" && touchY !== null && touchY - e.touches[0].clientY > 8) { touchY = null; play(1); }
+    }, { passive: false });
+    window.addEventListener("keydown", (e) => {
+      if (mode === "done" || e.altKey || e.ctrlKey || e.metaKey) return;
+      const tag = e.target && e.target.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      const down = ["ArrowDown", "PageDown", "End", " "].includes(e.key);
+      const up = ["ArrowUp", "PageUp", "Home"].includes(e.key);
+      if (!down && !up) return;
+      if (e.key === " " && tag === "BUTTON") return;
+      e.preventDefault();
+      if (mode === "rest" && down) play(1);
+    });
+    go.addEventListener("click", () => play(1));
+    // ссылка из меню на раздел: заставку не проигрываем, браузер просто листает к разделу
+    document.addEventListener("click", (e) => {
+      if (mode === "rest" && e.target.closest && e.target.closest('a[href^="#"]')) setMode("done");
+    }, true);
+
+    // Вернулись к заставке листанием вверх: ждём, пока прокрутка остановится (инерция пальца),
+    // и дальше сцена сама доигрывает назад до логотипа
+    let settle = 0, goingUp = false;
+    window.addEventListener("scroll", () => {
+      const y = window.scrollY;
+      if (mode !== "playing") {
+        if (mode === "rest" && y >= travelPx() - 8) setMode("done");  // ссылка из шапки увела вниз
+        else if (y <= 1) setMode("rest");
+        goingUp = y < lastY;
+        lastY = y;
+        clearTimeout(settle);
+        settle = setTimeout(() => {
+          const t = travelPx(), now = window.scrollY;
+          if (mode === "playing" || now <= 1 || now >= t - 8) return;
+          play(mode === "rest" || !goingUp ? 1 : -1);
+        }, 140);
+      }
+      request();
+    }, { passive: true });
     window.addEventListener("resize", () => { geo = null; request(); });
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { geo = null; request(); });
+
+    // Сайт всегда открывается заставкой, даже если обновить страницу посередине
+    // (по ссылке на раздел, например #menu, сразу показываем раздел)
+    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+    if (!location.hash) window.scrollTo(0, 0);
+    const y0 = window.scrollY;
+    if (y0 <= 1) setMode("rest");
+    else if (y0 >= travelPx() - 8) setMode("done");
+    else { setMode("done"); requestAnimationFrame(() => play(1)); }
     render();
   }
 

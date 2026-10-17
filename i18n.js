@@ -182,6 +182,7 @@ window.RASSVET_I18N = {
   "Мультфильм на большой стене в зале кофейни, вдоль стены горят гирлянды": "Qahvaxona zalidagi katta devorda multfilm, devor bo‘ylab gulchambarlar yonib turibdi",
   "Гости с детьми смотрят мультфильм в зале кофейни": "Mehmonlar bolalari bilan qahvaxona zalida multfilm tomosha qilishmoqda",
   "Показать ещё фото": "Yana suratlarni ko‘rsatish",
+  "Листать дальше": "Pastga varaqlash",
   "Выбрать язык": "Tilni tanlash"
  },
  "en": {
@@ -366,6 +367,7 @@ window.RASSVET_I18N = {
   "Мультфильм на большой стене в зале кофейни, вдоль стены горят гирлянды": "A cartoon on the big wall of the café, with fairy lights along the wall",
   "Гости с детьми смотрят мультфильм в зале кофейни": "Guests and their kids watching a cartoon in the café",
   "Показать ещё фото": "Show more photos",
+  "Листать дальше": "Scroll down",
   "Выбрать язык": "Choose language"
  },
  "ui": {
